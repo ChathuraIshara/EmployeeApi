@@ -1,4 +1,5 @@
 using EmployeeApi;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,7 @@ if (app.Environment.IsDevelopment())
 
 
 employeeRoute.MapGet(String.Empty, () => { return Results.Ok(employees); });
-employeeRoute.MapGet("{id:int}", (int id) =>
+employeeRoute.MapGet("{id:int}", ([FromRoute]int id) =>
 {
     var employee = employees.FirstOrDefault(e => e.id == id);
     if (employee == null)
@@ -38,7 +39,7 @@ employeeRoute.MapGet("{id:int}", (int id) =>
     }
     return Results.Ok(employee);
 });
-employeeRoute.MapPost(String.Empty, (Employee employee) =>
+employeeRoute.MapPost(String.Empty, ([FromBody]Employee employee) =>
 {
     employee.id = employees.Max(e => e.id) + 1; // Assign a new ID
     employees.Add(employee);
@@ -51,3 +52,6 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+
+public partial class Program { } // This is required for the integration tests to work with the WebApplicationFactory
