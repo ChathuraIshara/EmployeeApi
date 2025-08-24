@@ -12,4 +12,5 @@ Key Features of Minimal API
 * Uses top-level statements in Program.cs.
 * Perfect for small APIs, microservices, prototypes.
 * Built on top of the same ASP.NET Core pipeline as MVC, so it’s not a separate framework.
+
 we can define Minimal api endpoint in program.cs file using app.MapGet() like wise
