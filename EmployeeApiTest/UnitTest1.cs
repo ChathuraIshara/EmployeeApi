@@ -1,5 +1,6 @@
 using EmployeeApi;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace EmployeeApiTest
@@ -38,7 +39,8 @@ namespace EmployeeApiTest
             var response = await client.PostAsJsonAsync("/employees", new
             {
                 FirstName = "John",
-                LastName = "Doe"
+                LastName = "Doe",
+                SocialSecurityNumber = "666"
             });
             
             response.EnsureSuccessStatusCode();
@@ -51,6 +53,15 @@ namespace EmployeeApiTest
             var response = await client.PostAsJsonAsync("/employees", new { });
 
             Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task updateEmployee_ReturnsNotFoundNotExistentEmployee()
+        {
+            HttpClient client = _factory.CreateClient();
+            var response = await client.PutAsJsonAsync("/employees/999",new Employee { FirstName="hell",LastName="ddd", SocialSecurityNumber="555"});
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }
