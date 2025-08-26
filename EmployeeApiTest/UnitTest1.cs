@@ -1,5 +1,7 @@
 using EmployeeApi;
+using EmployeeApi.Abstractions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -12,6 +14,8 @@ namespace EmployeeApiTest
         public BasicTests(WebApplicationFactory<Program> factory)
         {
             _factory = factory;
+            var repo = _factory.Services.GetRequiredService<IRepository<Employee>>();
+            repo.Create(new Employee { FirstName = "John", LastName = "Doe" });
         }
 
         [Fact]
@@ -28,7 +32,6 @@ namespace EmployeeApiTest
         {
             HttpClient client = _factory.CreateClient();
             var response = await client.GetAsync("/employees/1");
-
             response.EnsureSuccessStatusCode();
         }
 
