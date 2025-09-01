@@ -1,4 +1,5 @@
 using EmployeeApi;
+using EmployeeApi.Abstractions;
 using EmployeeApi.Employees;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<EmployeeRepository>();
+builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
+
 
 // Employees list
 
@@ -26,7 +28,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-employeeRoute.MapGet(String.Empty, (EmployeeRepository repository) => { 
+employeeRoute.MapGet(String.Empty, (IRepository<Employee> repository) => { 
     return Results.Ok(repository.GetAll().Select(employee => new GetEmployeeResponse
     {
         FirstName = employee.FirstName,
@@ -40,7 +42,7 @@ employeeRoute.MapGet(String.Empty, (EmployeeRepository repository) => {
         Email = employee.Email
     }));
 });
-employeeRoute.MapGet("{id:int}", ([FromRoute]int id,EmployeeRepository repository) =>
+employeeRoute.MapGet("{id:int}", ([FromRoute]int id,IRepository<Employee> repository) =>
 {
     var employee = repository.GetById(id);
     if (employee == null)
@@ -61,7 +63,7 @@ employeeRoute.MapGet("{id:int}", ([FromRoute]int id,EmployeeRepository repositor
 
     });
 });
-employeeRoute.MapPost(String.Empty, ([FromBody] CreateEmployeeRequest employee,EmployeeRepository repository) =>
+employeeRoute.MapPost(String.Empty, ([FromBody] CreateEmployeeRequest employee,IRepository<Employee> repository) =>
 {
     var newEmployee = new Employee
     {
@@ -81,7 +83,7 @@ employeeRoute.MapPost(String.Empty, ([FromBody] CreateEmployeeRequest employee,E
 
 });
 
-employeeRoute.MapPut("{id}",([FromBody] UpdateEmployeeRequest updatedEmployee,[FromRoute]int id,EmployeeRepository repository) =>{
+employeeRoute.MapPut("{id}",([FromBody] UpdateEmployeeRequest updatedEmployee,[FromRoute]int id,IRepository<Employee> repository) =>{
     var existingEmployee =  repository.GetById(id);
     if(existingEmployee==null)
     {
