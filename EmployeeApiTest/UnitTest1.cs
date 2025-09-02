@@ -59,8 +59,8 @@ namespace EmployeeApiTest
             Assert.NotNull(problemDetails);
             Assert.Contains("FirstName", problemDetails.Errors.Keys);
             Assert.Contains("LastName", problemDetails.Errors.Keys);
-            Assert.Contains("'First Name' must not be empty.", problemDetails.Errors["FirstName"]);
-            Assert.Contains("'Last Name' must not be empty.", problemDetails.Errors["LastName"]);
+            Assert.Contains("The FirstName field is required.",problemDetails.Errors["FirstName"]);
+            Assert.Contains("The LastName field is required.", problemDetails.Errors["LastName"]);
         }
 
         [Fact]
