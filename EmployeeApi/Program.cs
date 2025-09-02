@@ -2,6 +2,7 @@ using EmployeeApi;
 using EmployeeApi.Abstractions;
 using EmployeeApi.Employees;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
+builder.Services.AddProblemDetails(); // This is for automatic 400 response for validation errors
 
 
 // Employees list
@@ -28,7 +30,8 @@ if (app.Environment.IsDevelopment())
 }
 
 
-employeeRoute.MapGet(String.Empty, (IRepository<Employee> repository) => { 
+employeeRoute.MapGet(String.Empty, (IRepository<Employee> repository) =>
+{
     return Results.Ok(repository.GetAll().Select(employee => new GetEmployeeResponse
     {
         FirstName = employee.FirstName,
@@ -43,7 +46,7 @@ employeeRoute.MapGet(String.Empty, (IRepository<Employee> repository) => {
     }));
 });
 employeeRoute.MapGet("{id:int}", ([FromRoute]int id,IRepository<Employee> repository) =>
-{
+{ 
     var employee = repository.GetById(id);
     if (employee == null)
     {
@@ -65,10 +68,16 @@ employeeRoute.MapGet("{id:int}", ([FromRoute]int id,IRepository<Employee> reposi
 });
 employeeRoute.MapPost(String.Empty, ([FromBody] CreateEmployeeRequest employee,IRepository<Employee> repository) =>
 {
+    var validationProblems = new List<ValidationResult>();
+    var isValid = Validator.TryValidateObject(employee, new ValidationContext(employee), validationProblems, true);
+    if (!isValid)
+    {
+        return Results.BadRequest(validationProblems.ToValidationProblemDetails());
+    }
     var newEmployee = new Employee
     {
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
+        FirstName = employee.FirstName!,
+        LastName = employee.LastName!,
         SocialSecurityNumber = employee.SocialSecurityNumber,
         Address1 = employee.Address1,
         Address2 = employee.Address2,

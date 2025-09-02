@@ -1,9 +1,13 @@
-﻿namespace EmployeeApi.Employees
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EmployeeApi.Employees
 {
     public class CreateEmployeeRequest
     {
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
+        [Required(AllowEmptyStrings = false)]
+        public  string? FirstName { get; set; }
+        [Required(AllowEmptyStrings = false)]
+        public  string? LastName { get; set; }
         public string? SocialSecurityNumber { get; set; }
 
         public string? Address1 { get; set; }
