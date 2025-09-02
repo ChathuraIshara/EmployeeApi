@@ -1,6 +1,7 @@
 using EmployeeApi;
 using EmployeeApi.Abstractions;
 using EmployeeApi.Employees;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -14,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails(); // This is for automatic 400 response for validation errors
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 
 // Employees list
@@ -66,13 +68,12 @@ employeeRoute.MapGet("{id:int}", ([FromRoute]int id,IRepository<Employee> reposi
 
     });
 });
-employeeRoute.MapPost(String.Empty, ([FromBody] CreateEmployeeRequest employee,IRepository<Employee> repository) =>
+employeeRoute.MapPost(String.Empty, async ([FromBody] CreateEmployeeRequest employee,IRepository<Employee> repository, IValidator<CreateEmployeeRequest> validator) =>
 {
-    var validationProblems = new List<ValidationResult>();
-    var isValid = Validator.TryValidateObject(employee, new ValidationContext(employee), validationProblems, true);
-    if (!isValid)
+    var validationResults = await validator.ValidateAsync(employee);
+    if (!validationResults.IsValid)
     {
-        return Results.BadRequest(validationProblems.ToValidationProblemDetails());
+        return Results.ValidationProblem(validationResults.ToDictionary());
     }
     var newEmployee = new Employee
     {

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EmployeeApi.Employees;
+using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeApi.Employees
 {
@@ -42,5 +44,14 @@ namespace EmployeeApi.Employees
         public string? ZipCode { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
+    }
+}
+
+public class CreateEmployeeRequestValidator : AbstractValidator<CreateEmployeeRequest>
+{
+    public CreateEmployeeRequestValidator()
+    {
+        RuleFor(x => x.FirstName).NotEmpty();
+        RuleFor(x => x.LastName).NotEmpty();
     }
 }

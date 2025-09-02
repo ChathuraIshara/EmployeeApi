@@ -1,5 +1,6 @@
 using EmployeeApi;
 using EmployeeApi.Abstractions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -54,8 +55,12 @@ namespace EmployeeApiTest
         {
             HttpClient client = _factory.CreateClient();
             var response = await client.PostAsJsonAsync("/employees", new { });
-
-            Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            Assert.NotNull(problemDetails);
+            Assert.Contains("FirstName", problemDetails.Errors.Keys);
+            Assert.Contains("LastName", problemDetails.Errors.Keys);
+            Assert.Contains("'First Name' must not be empty.", problemDetails.Errors["FirstName"]);
+            Assert.Contains("'Last Name' must not be empty.", problemDetails.Errors["LastName"]);
         }
 
         [Fact]
