@@ -8,15 +8,18 @@ namespace EmployeeApi.Controllers
     public class EmployeesController : BaseController
     {
         private readonly IRepository<Employee> _repository;
-        public EmployeesController(IRepository<Employee> repository)
+        private readonly ILogger<EmployeesController> _logger;
+        public EmployeesController(IRepository<Employee> repository, ILogger<EmployeesController> logger)
         {
             _repository = repository;
+            _logger = logger;
            
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
+            _logger.LogInformation("Starting retrieval of all employees");
             var employees = _repository.GetAll().Select(employee=>new GetEmployeeResponse
             {
                 FirstName = employee.FirstName,
