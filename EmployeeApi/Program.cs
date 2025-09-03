@@ -16,7 +16,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails(); // This is for automatic 400 response for validation errors
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationFilter>();
+});
+builder.Services.AddHttpContextAccessor();
 
 
 // Employees list

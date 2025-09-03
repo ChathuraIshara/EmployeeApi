@@ -58,13 +58,8 @@ namespace EmployeeApi.Controllers
             return Ok(employeeResponse);
         }
         [HttpPost]
-        public async Task<IActionResult>  CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
+        public  ActionResult CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
         {
-            var validationResults = await ValidateAsync(employeeRequest);
-            if (!validationResults.IsValid)
-            {
-                return BadRequest(validationResults.ToModelStateDictionary());
-            }
             var newEmployee = new Employee
             {
                 FirstName = employeeRequest.FirstName!,

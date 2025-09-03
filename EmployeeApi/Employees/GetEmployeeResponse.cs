@@ -1,4 +1,6 @@
-﻿using EmployeeApi.Employees;
+﻿using EmployeeApi.Abstractions;
+using EmployeeApi;
+using EmployeeApi.Employees;
 using FluentValidation;
 using System.ComponentModel.DataAnnotations;
 
@@ -53,5 +55,34 @@ public class CreateEmployeeRequestValidator : AbstractValidator<CreateEmployeeRe
     {
         RuleFor(x => x.FirstName).NotEmpty();
         RuleFor(x => x.LastName).NotEmpty();
+    }
+}
+
+public class UpdateEmployeeRequestValidator : AbstractValidator<UpdateEmployeeRequest>
+{
+    private readonly HttpContext _httpContext;
+    private readonly IRepository<Employee> _repository;
+
+    public UpdateEmployeeRequestValidator(IHttpContextAccessor httpContextAccessor, IRepository<Employee> repository)
+    {
+        this._httpContext = httpContextAccessor.HttpContext!;
+        this._repository = repository;
+
+        RuleFor(x => x.Address1).MustAsync(NotBeEmptyIfItIsSetOnEmployeeAlreadyAsync).WithMessage("Address1 must not be empty.");
+    }
+
+    private async Task<bool> NotBeEmptyIfItIsSetOnEmployeeAlreadyAsync(string? address, CancellationToken token)
+    {
+        await Task.CompletedTask;   //again, we'll not make this async for now!
+
+        var id = Convert.ToInt32(_httpContext.Request.RouteValues["id"]);
+        var employee = _repository.GetById(id);
+
+        if (employee!.Address1 != null && string.IsNullOrWhiteSpace(address))
+        {
+            return false;
+        }
+
+        return true;
     }
 }

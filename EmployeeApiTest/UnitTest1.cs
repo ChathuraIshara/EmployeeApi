@@ -1,5 +1,6 @@
 using EmployeeApi;
 using EmployeeApi.Abstractions;
+using EmployeeApi.Employees;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,12 +12,15 @@ namespace EmployeeApiTest
     public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory;
+        private readonly int _employeeIdForAddressTest;
 
         public BasicTests(WebApplicationFactory<Program> factory)
         {
             _factory = factory;
             var repo = _factory.Services.GetRequiredService<IRepository<Employee>>();
-            repo.Create(new Employee { FirstName = "John", LastName = "Doe" });
+            var employee = new Employee { FirstName = "John", LastName = "Doe" };
+            repo.Create(employee);
+            _employeeIdForAddressTest = repo.GetAll().First().id;
         }
 
         [Fact]
@@ -64,12 +68,30 @@ namespace EmployeeApiTest
         }
 
         [Fact]
-        public async Task updateEmployee_ReturnsNotFoundNotExistentEmployee()
+        public async Task UpdateEmployee_ReturnsOkResult()
         {
-            HttpClient client = _factory.CreateClient();
-            var response = await client.PutAsJsonAsync("/employees/999",new Employee { FirstName="hell",LastName="ddd", SocialSecurityNumber="555"});
+            var client = _factory.CreateClient();
+            var response = await client.PutAsJsonAsync("/employees/1", new Employee { FirstName = "John", LastName = "Doe", Address1 = "123 Main St" });
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            response.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
+        {
+            // Arrange
+            var client = _factory.CreateClient();
+            var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
+
+            // Act
+            var response = await client.PutAsJsonAsync($"/employees/{_employeeIdForAddressTest}", invalidEmployee);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            Assert.NotNull(problemDetails);
+            Assert.Contains("Address1", problemDetails.Errors.Keys);
         }
     }
 }
