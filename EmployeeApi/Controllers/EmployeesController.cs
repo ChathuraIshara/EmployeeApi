@@ -17,6 +17,8 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAll()
         {
             _logger.LogInformation("Starting retrieval of all employees");
@@ -36,6 +38,9 @@ namespace EmployeeApi.Controllers
 
         }
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetEmployeeById(int id)
         {
             var employee = _repository.GetById(id);
@@ -58,7 +63,10 @@ namespace EmployeeApi.Controllers
             return Ok(employeeResponse);
         }
         [HttpPost]
-        public  ActionResult CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
+        [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public  ActionResult  CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
         {
             var newEmployee = new Employee
             {
@@ -77,6 +85,10 @@ namespace EmployeeApi.Controllers
             return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.id }, newEmployee);
         }
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Update(int id, [FromBody] UpdateEmployeeRequest employee)
         {
             var existingEmployee = _repository.GetById(id);
