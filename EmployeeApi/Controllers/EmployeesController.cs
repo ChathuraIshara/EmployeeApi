@@ -26,18 +26,8 @@ namespace EmployeeApi.Controllers
         public IActionResult GetAll()
         {
             _logger.LogInformation("Starting retrieval of all employees");
-            var employees = _repository.GetAll().Select(employee=>new GetEmployeeResponse
-            {
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                Address1 = employee.Address1,
-                Address2 = employee.Address2,
-                City = employee.City,
-                State = employee.State,
-                ZipCode = employee.ZipCode,
-                PhoneNumber = employee.PhoneNumber,
-                Email = employee.Email
-            });
+            var employees = _repository.GetAll().Select(EmployeeToGetEmployeeResponse);
+         
             return Ok(employees);
 
         }
@@ -57,18 +47,7 @@ namespace EmployeeApi.Controllers
             {
                 return NotFound();
             }
-            var employeeResponse = new GetEmployeeResponse
-            {
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                Address1 = employee.Address1,
-                Address2 = employee.Address2,
-                City = employee.City,
-                State = employee.State,
-                ZipCode = employee.ZipCode,
-                PhoneNumber = employee.PhoneNumber,
-                Email = employee.Email
-            };
+            var employeeResponse = EmployeeToGetEmployeeResponse(employee);
             return Ok(employeeResponse);
         }
         /// <summary>
@@ -130,6 +109,29 @@ namespace EmployeeApi.Controllers
             _repository.Update(existingEmployee);
             return Ok(existingEmployee);
 
+        }
+
+        private GetEmployeeResponse EmployeeToGetEmployeeResponse(Employee employee)
+        {
+            return new GetEmployeeResponse
+            {
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Address1 = employee.Address1,
+                Address2 = employee.Address2,
+                City = employee.City,
+                State = employee.State,
+                ZipCode = employee.ZipCode,
+                PhoneNumber = employee.PhoneNumber,
+                Email = employee.Email,
+                Benefits = employee.Benefits.Select(benefit => new GetEmployeeResponseEmployeeBenefit
+                {
+                    Id = benefit.Id,
+                    EmployeeId = benefit.EmployeeId,
+                    BenefitType = benefit.BenefitType,
+                    Cost = benefit.Cost
+                }).ToList()
+            };
         }
 
 
