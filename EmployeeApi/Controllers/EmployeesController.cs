@@ -16,6 +16,10 @@ namespace EmployeeApi.Controllers
            
         }
 
+        /// <summary>
+        /// Get all employees.
+        /// </summary>
+        /// <returns>An array of all employees.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -37,6 +41,11 @@ namespace EmployeeApi.Controllers
             return Ok(employees);
 
         }
+        /// <summary>
+        /// Gets an employee by ID.
+        /// </summary>
+        /// <param name="id">The ID of the employee.</param>
+        /// <returns>The single employee record.</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,6 +71,11 @@ namespace EmployeeApi.Controllers
             };
             return Ok(employeeResponse);
         }
+        /// <summary>
+        /// Creates a new employee.
+        /// </summary>
+        /// <param name="employeeRequest">The employee to be created.</param>
+        /// <returns>A link to the employee that was created.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
@@ -84,12 +98,20 @@ namespace EmployeeApi.Controllers
             _repository.Create(newEmployee);
             return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.id }, newEmployee);
         }
+
+
+        /// <summary>
+        /// Updates an employee.
+        /// </summary>
+        /// <param name="id">The ID of the employee to update.</param>
+        /// <param name="employeeRequest">The employee data to update.</param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Update(int id, [FromBody] UpdateEmployeeRequest employee)
+        public IActionResult Update(int id, [FromBody] UpdateEmployeeRequest employeeRequest)
         {
             var existingEmployee = _repository.GetById(id);
             if(existingEmployee == null)
@@ -97,13 +119,13 @@ namespace EmployeeApi.Controllers
                 return NotFound();
             }
 
-            existingEmployee.Address1 = employee.Address1;
-            existingEmployee.Address2 = employee.Address2;
-            existingEmployee.City = employee.City;
-            existingEmployee.State = employee.State;
-            existingEmployee.ZipCode = employee.ZipCode;
-            existingEmployee.PhoneNumber = employee.PhoneNumber;
-            existingEmployee.Email = employee.Email;
+            existingEmployee.Address1 = employeeRequest.Address1;
+            existingEmployee.Address2 = employeeRequest.Address2;
+            existingEmployee.City = employeeRequest.City;
+            existingEmployee.State = employeeRequest.State;
+            existingEmployee.ZipCode = employeeRequest.ZipCode;
+            existingEmployee.PhoneNumber = employeeRequest.PhoneNumber;
+            existingEmployee.Email = employeeRequest.Email;
 
             _repository.Update(existingEmployee);
             return Ok(existingEmployee);

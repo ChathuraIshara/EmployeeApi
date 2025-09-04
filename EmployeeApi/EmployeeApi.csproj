@@ -5,7 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	 <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	 <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
