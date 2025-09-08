@@ -1,5 +1,4 @@
 using EmployeeApi;
-using EmployeeApi.Abstractions;
 using EmployeeApi.Employees;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +16,6 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "EmployeeAPI.xml"));
 });
-builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails(); // This is for automatic 400 response for validation errors
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddControllers(options =>
