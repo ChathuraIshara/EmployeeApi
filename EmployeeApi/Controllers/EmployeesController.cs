@@ -73,65 +73,76 @@ namespace EmployeeApi.Controllers
             var employeeResponse = EmployeeToGetEmployeeResponse(employee);
             return Ok(employeeResponse);
         }
-        ///// <summary>
-        ///// Creates a new employee.
-        ///// </summary>
-        ///// <param name="employeeRequest">The employee to be created.</param>
-        ///// <returns>A link to the employee that was created.</returns>
-        //[HttpPost]
-        //[ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //public  ActionResult  CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
-        //{
-        //    var newEmployee = new Employee
-        //    {
-        //        FirstName = employeeRequest.FirstName!,
-        //        LastName = employeeRequest.LastName!,
-        //        SocialSecurityNumber = employeeRequest.SocialSecurityNumber,
-        //        Address1 = employeeRequest.Address1,
-        //        Address2 = employeeRequest.Address2,
-        //        City = employeeRequest.City,
-        //        State = employeeRequest.State,
-        //        ZipCode = employeeRequest.ZipCode,
-        //        PhoneNumber = employeeRequest.PhoneNumber,
-        //        Email = employeeRequest.Email
-        //    };
-        //    _repository.Create(newEmployee);
-        //    return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.id }, newEmployee);
-        //}
-
-
         /// <summary>
-        /// Updates an employee.
+        /// Creates a new employee.
         /// </summary>
-        /// <param name="employee"></param>
-        /// <returns></returns>
-        //[HttpPut("{id}")]
-        //[ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //public IActionResult Update(int id, [FromBody] UpdateEmployeeRequest employeeRequest)
-        //{
-        //    var existingEmployee = _repository.GetById(id);
-        //    if(existingEmployee == null)
-        //    {
-        //        return NotFound();
-        //    }
+        /// <param name="employeeRequest">The employee to be created.</param>
+        /// <returns>A link to the employee that was created.</returns>
+        [HttpPost]
+        [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task <IActionResult> CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
+        {
+            var newEmployee = new Employee
+            {
+                FirstName = employeeRequest.FirstName!,
+                LastName = employeeRequest.LastName!,
+                SocialSecurityNumber = employeeRequest.SocialSecurityNumber,
+                Address1 = employeeRequest.Address1,
+                Address2 = employeeRequest.Address2,
+                City = employeeRequest.City,
+                State = employeeRequest.State,
+                ZipCode = employeeRequest.ZipCode,
+                PhoneNumber = employeeRequest.PhoneNumber,
+                Email = employeeRequest.Email
+            };
+            _dbContext.Add(newEmployee);
+            await _dbContext.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.id }, newEmployee);
+        }
 
-        //    existingEmployee.Address1 = employeeRequest.Address1;
-        //    existingEmployee.Address2 = employeeRequest.Address2;
-        //    existingEmployee.City = employeeRequest.City;
-        //    existingEmployee.State = employeeRequest.State;
-        //    existingEmployee.ZipCode = employeeRequest.ZipCode;
-        //    existingEmployee.PhoneNumber = employeeRequest.PhoneNumber;
-        //    existingEmployee.Email = employeeRequest.Email;
 
-        //    _repository.Update(existingEmployee);
-        //    return Ok(existingEmployee);
+        // <summary>
+        // Updates an employee.
+        // </summary>
+        // <param name = "employee" ></ param >
+        // < returns ></ returns >
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task <IActionResult> Update(int id, [FromBody] UpdateEmployeeRequest employeeRequest)
+        {
+            var existingEmployee = await _dbContext.Employees.AsTracking().SingleOrDefaultAsync(e=>e.id == id);
+            if (existingEmployee == null)
+            {
+                return NotFound();
+            }
 
-        //}
+            existingEmployee.Address1 = employeeRequest.Address1;
+            existingEmployee.Address2 = employeeRequest.Address2;
+            existingEmployee.City = employeeRequest.City;
+            existingEmployee.State = employeeRequest.State;
+            existingEmployee.ZipCode = employeeRequest.ZipCode;
+            existingEmployee.PhoneNumber = employeeRequest.PhoneNumber;
+            existingEmployee.Email = employeeRequest.Email;
+            try
+            {
+               // _dbContext.Entry(existingEmployee).State = EntityState.Modified;
+
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
+                return Ok(existingEmployee);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
+                return StatusCode(500, "An error occurred while updating the employee");
+            }
+
+        }
 
         private GetEmployeeResponse EmployeeToGetEmployeeResponse(Employee employee)
         {
@@ -185,6 +196,25 @@ namespace EmployeeApi.Controllers
         //        Cost = benefit.Cost
         //    };
         //}
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var employee = await _dbContext.Employees.FindAsync(id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            _dbContext.Employees.Remove(employee);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
 
 
 
