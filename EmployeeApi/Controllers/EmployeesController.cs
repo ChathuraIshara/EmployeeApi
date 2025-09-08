@@ -33,7 +33,6 @@ namespace EmployeeApi.Controllers
             int numberOfRecords = request?.RecordsPerPage ?? 100;
 
             IQueryable<Employee> query = _dbContext.Employees
-                 .Include(e=>e.Benefits)
                  .Skip((page -1) * numberOfRecords)
                  .Take(numberOfRecords);
             if (request != null)
@@ -157,45 +156,41 @@ namespace EmployeeApi.Controllers
                 ZipCode = employee.ZipCode,
                 PhoneNumber = employee.PhoneNumber,
                 Email = employee.Email,
-                Benefits = employee.Benefits.Select(benefit => new GetEmployeeResponseEmployeeBenefit
-                {
-                    Id = benefit.Id,
-                    EmployeeId = benefit.EmployeeId,
-                    BenefitType = benefit.BenefitType,
-                    Cost = benefit.Cost
-                }).ToList()
+              
             };
         }
 
-        ///// <summary>
-        ///// Gets the benefits for an employee.
-        ///// </summary>
-        ///// <param name="employeeId">The ID to get the benefits for.</param>
-        ///// <returns>The benefits for that employee.</returns>
-        //[HttpGet("{employeeId}/benefits")]
-        //[ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //public IActionResult GetBenefitsForEmployee(int employeeId)
-        //{
-        //    var employee = _repository.GetById(employeeId);
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return Ok(employee.Benefits.Select(b=>BenefitToBenefitResponse(b)));
-        //}
+        /// <summary>
+        /// Gets the benefits for an employee.
+        /// </summary>
+        /// <param name="employeeId">The ID to get the benefits for.</param>
+        /// <returns>The benefits for that employee.</returns>
+        [HttpGet("{employeeId}/benefits")]
+        [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
+        {
+            var employee = await _dbContext.Employees
+                .Include(e => e.Benefits)
+                .ThenInclude(e => e.Benefit)
+                .SingleOrDefaultAsync(e => e.id == employeeId);
 
-        //private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
-        //{
-        //    return new GetEmployeeResponseEmployeeBenefit
-        //    {
-        //        Id = benefit.Id,
-        //        EmployeeId = benefit.EmployeeId,
-        //        BenefitType = benefit.BenefitType,
-        //        Cost = benefit.Cost
-        //    };
-        //}
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            var benefits = employee.Benefits.Select(b => new GetEmployeeResponseEmployeeBenefit
+            {
+                Id = b.Id,
+                Name = b.Benefit.Name,
+                Description = b.Benefit.Description,
+                Cost = b.CostToEmployee ?? b.Benefit.BaseCost   //we want to use the cost to employee if it exists, otherwise we want to use the base cost
+            });
+
+            return Ok(benefits);
+        }
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
