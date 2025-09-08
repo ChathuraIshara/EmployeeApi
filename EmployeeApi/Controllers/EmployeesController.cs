@@ -25,11 +25,32 @@ namespace EmployeeApi.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task <IActionResult> GetAll()
+        public async Task <IActionResult> GetAll([FromQuery] GetAllEmployeesRequest request)
         {
             _logger.LogInformation("Starting retrieval of all employees");
-            var employees = await _dbContext.Employees.Include(e=>e.Benefits).ToArrayAsync();
 
+            int page = request?.Page ?? 1;
+            int numberOfRecords = request?.RecordsPerPage ?? 100;
+
+            IQueryable<Employee> query = _dbContext.Employees
+                 .Include(e=>e.Benefits)
+                 .Skip((page -1) * numberOfRecords)
+                 .Take(numberOfRecords);
+            if (request != null)
+            {
+                if (!string.IsNullOrWhiteSpace(request.FirstNameContains))
+                {
+                    query = query.Where(e => e.FirstName.Contains(request.FirstNameContains));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.LastNameContains))
+                {
+                    query = query.Where(e => e.LastName.Contains(request.LastNameContains));
+                }
+            }
+
+
+            var employees = await query.ToArrayAsync();
             return Ok(employees.Select(EmployeeToGetEmployeeResponse));
 
         }
