@@ -2,7 +2,7 @@
 
 namespace EmployeeApi
 {
-    public class Employee
+    public class Employee:AuditableEntity
     {
         public int id { get; set; }
         public required  string FirstName { get; set;}  //since we add required,this does not give nullable warning.otherwise we need to add ? in the type to avoid it
@@ -35,6 +35,14 @@ namespace EmployeeApi
         public int BenefitId { get; set; }
         public Benefit Benefit { get; set; } = null!;
         public decimal? CostToEmployee { get; set; }
+    }
+
+    public abstract class AuditableEntity
+    {
+        public string? CreatedBy { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public string? LastModifiedBy { get; set; }
+        public DateTime? LastModifiedOn { get; set; }
     }
 
 }
